@@ -1,4 +1,6 @@
-import json, requests
+import requests
+
+
 class Robot:
     def __init__(self, name, ip, auth):
         self.ip = ip
@@ -11,7 +13,6 @@ class Robot:
         self.headers["Authorization"] = auth
 
         self.missions = ""
-        self.getMissions()
         self.missionNames = []
         self.getMissionNames()
 
@@ -21,8 +22,10 @@ class Robot:
         self.location = ""
         self.getStatus()
 
+        self.group = ""
+
     def __str__(self):
-        return "Name: " + self.name
+        return self.name
 
     def __repr__(self):
         return self.name
@@ -38,6 +41,7 @@ class Robot:
 
     def getMissionNames(self):
         self.missionNames = []
+        self.getMissions()
         for each in self.missions:
             self.missionNames.append(each["name"])
         return self.missionNames
@@ -67,3 +71,60 @@ class Robot:
         self.status = status['state_text']
         self.battery = status['battery_percentage']
         return status
+
+
+class Fleet:
+
+    def __init__(self):
+        self.allRobots = []
+
+    def inductRobot(self, name, ip, auth):
+        self.allRobots.append(Robot(name, ip, auth))
+
+    def update(self):
+        for each in self.allRobots:
+            each.getStatus()
+            if each.status == "Ready" and each.battery > 20:
+                each.group = "Waiting"
+            elif each.status == "Ready" and each.battery <= 20:
+                each.group = "Needs Charge"
+            else:
+                each.group = "Active"
+
+    def printStatus(self):
+        for each in self.allRobots:
+            each.printStatus()
+
+    def getBusyRobots(self):
+        robotList = []
+        for each in self.allRobots:
+            if each.group == "Active":
+                robotList.append(each)
+        return robotList
+
+    def getWaitingRobots(self):
+        robotList = []
+        for each in self.allRobots:
+            if each.group == "Waiting":
+                robotList.append(each)
+        return robotList
+
+    def getNeedChargeRobots(self):
+        robotList = []
+        for each in self.allRobots:
+            if each.group == "Needs Charge":
+                robotList.append(each)
+        return robotList
+
+    def hasRobotsWaiting(self):
+        if len(self.getWaitingRobots()) > 0:
+            return True
+        else:
+            return False
+
+    def hasRobotsNeedCharge(self):
+        if len(self.getNeedChargeRobots()) > 0:
+            return True
+        else:
+            return False
+

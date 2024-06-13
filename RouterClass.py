@@ -54,14 +54,11 @@ class Router:
             return False
 
     def getNextLocation(self, bot, lastLocation):
-        if self.canContinue(bot):
-            location = self.routeRunning[bot].pop(0)
-            if location in self.map:
-                self.map[location] = bot
-            if lastLocation in self.map:
-                self.map[lastLocation] = None
-            if len(self.routeRunning[bot]) == 0:
-                self.routeRunning.pop(bot)
-            return location
-        else:
-            return ""
+        location = self.routeRunning[bot].pop(0)
+        if location in self.map:
+            self.map[location] = bot
+        if lastLocation in self.map:
+            self.map[lastLocation] = None
+        if len(self.routeRunning[bot]) == 0:
+            self.routeRunning.pop(bot)
+        return location

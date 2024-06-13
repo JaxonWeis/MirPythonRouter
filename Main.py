@@ -1,92 +1,77 @@
 from time import sleep
-import RobotClass
+import MIR
 import RouterClass
 import urx
 
 # Create Robots
-mir600 = RobotClass.Robot("Mir 600", "192.168.1.5", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
-mir250_1 = RobotClass.Robot("Mir 250_1", "192.168.1.10", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
-mir250_2 = RobotClass.Robot("Mir 250_2", "192.168.1.15", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
-mir250_3 = RobotClass.Robot("Mir 250_3", "192.168.1.20", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
-
-allRobots = [mir600 , mir250_1, mir250_2, mir250_3]
-# allRobots = [mir250_1, mir250_3]
-waitRobots = []
-activeRobots = []
-chargingRobots = []
+fleet = MIR.Fleet()
+fleet.inductRobot("Mir 600", "192.168.1.5", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
+fleet.inductRobot("Mir 250_1", "192.168.1.10", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
+fleet.inductRobot("Mir 250_2", "192.168.1.15", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
+fleet.inductRobot("Mir 250_3", "192.168.1.20", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
 
 router = RouterClass.Router()
 
-for each in allRobots:
-    if each.status != "Ready":
-        activeRobots.append(each)
-        router.routeRunning[each] = []
-    else:
-        waitRobots.append(each)
+for each in fleet.getBusyRobots():
+    router.addCustomRoute(each, [])
+
+rob = urx.Robot("192.168.1.25")
+
+
 
 while True:
     print("--------------------------------------------------------")
+    print(str(rob.get_pose()))
+    sleep(5)
 
+
+    '''
     # display all robot status
-    for each in allRobots:
-        each.printStatus()
+    fleet.update()
+    fleet.printStatus()
     print()
 
-    # sort robots by battery status
-    index = 0
-    loop = len(waitRobots)
-    while index < loop:
-        bot = waitRobots.pop(0)
-        if bot.battery < 20:
-            chargingRobots.append(bot)
-        else:
-            waitRobots.append(bot)
-        index += 1
-
     # print robot Status
-    print("Waiting Robots: " + str(len(waitRobots))
-          + "\tActive Robots: " + str(len(activeRobots))
-          + "\tNeed Charging Robots: " + str(len(chargingRobots)))
+    print("Waiting Robots: " + str(len(fleet.getWaitingRobots()))
+          + "\tBusy Robots: " + str(len(fleet.getBusyRobots()))
+          + "\tNeed Charging Robots: " + str(len(fleet.getNeedChargeRobots())))
     print()
 
     # print route queue
     router.printStatus()
 
-    # Match robot to route
-    if (len(waitRobots) > 0) and router.hasRoutes():
-        bot = waitRobots.pop(0)
-        activeRobots.append(bot)
-        router.addRoute(bot)
-
-    if len(chargingRobots) > 0:
-        if router.locationIsAvailable('Charge1'):
-            bot = chargingRobots.pop(0)
-            activeRobots.append(bot)
-            router.addCustomRoute(bot, ['Charge1', 'Park'])
-        elif router.locationIsAvailable('Charge2'):
-            bot = chargingRobots.pop(0)
-            activeRobots.append(bot)
-            router.addCustomRoute(bot, ['Charge2', 'Park'])
-
     # print map
     router.printMap()
+
+    # Match robot to route
+    if fleet.hasRobotsWaiting() and router.hasRoutes():
+        bot = fleet.getWaitingRobots()[0]
+        if bot not in router.routeRunning:
+            router.addRoute(bot)
 
     # print running Queue
     router.printRunningQueue()
 
+    # Assign Robots needing charge routes
+    if fleet.hasRobotsNeedCharge():
+        bot = fleet.getNeedChargeRobots()[0]
+        if bot not in router.routeRunning:
+            if router.locationIsAvailable('Charge1'):
+                router.addCustomRoute(bot, ['Charge1', 'Park'])
+            elif router.locationIsAvailable('Charge2'):
+                router.addCustomRoute(bot, ['Charge2', 'Park'])
+
     # Execute Running Queue
-    for each in activeRobots:
-        if each.status == "Ready":
-            if router.canContinue(each):
-                each.postMissionByName(router.getNextLocation(each, each.location))
+    for bot in fleet.getWaitingRobots():
+        if router.canContinue(bot):
+            bot.postMissionByName(router.getNextLocation(bot, bot.location))
 
-    for each in activeRobots:
-        if each not in router.routeRunning:
-            activeRobots.pop(activeRobots.index(each))
-            waitRobots.append(each)
+    for bot in fleet.getNeedChargeRobots():
+        if router.canContinue(bot):
+            bot.postMissionByName(router.getNextLocation(bot, bot.location))
 
-    sleep(2)
-
+    sleep(5)
+    '''
 
 
 
