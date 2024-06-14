@@ -6,8 +6,8 @@ import UR
 
 # Create MIR Robot Fleet
 fleet = MIR.Fleet()
-fleet.inductRobot("MiR 600", "192.168.1.5", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
-fleet.inductRobot("MiR 250_1", "192.168.1.10", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
+# fleet.inductRobot("MiR 600", "192.168.1.5", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
+# fleet.inductRobot("MiR 250_1", "192.168.1.10", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
 # fleet.inductRobot("MiR 250_2", "192.168.1.15", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
 # fleet.inductRobot("MiR 250_3", "192.168.1.20", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
 
@@ -20,10 +20,16 @@ router = RouterClass.Router()
 while True:
     print("--------------------------------------------------------")
 
-    # display all robot status
+    # display MiR robot status
     print("MiR Robots:")
     fleet.update()
     fleet.printStatus()
+    print()
+
+    # print Mir Robot Groups
+    print("Waiting Robots: " + str(len(fleet.getWaitingRobots()))
+          + "\tBusy Robots: " + str(len(fleet.getBusyRobots()))
+          + "\tNeed Charging Robots: " + str(len(fleet.getNeedChargeRobots())))
     print()
 
     # display UR Robots
@@ -32,17 +38,10 @@ while True:
     UR20.printStatus()
     print()
 
-    # print robot Status
-    print("Waiting Robots: " + str(len(fleet.getWaitingRobots()))
-          + "\tBusy Robots: " + str(len(fleet.getBusyRobots()))
-          + "\tNeed Charging Robots: " + str(len(fleet.getNeedChargeRobots())))
-    print()
-
     # Add route if UR is ready
     if UR20.readyToLoad:
         router.addToQueue(['MiR 250_1', 'Spot1', 'Spot2', 'Spot3', 'UR: Load', 'UR: Wait', 'Spot4', 'Spot5'])
         UR20.readyToLoad = False
-
     if UR20.readyToUnload:
         router.addToQueue(['MiR 250_1', 'Spot1', 'Spot2', 'Spot3', 'UR: Unload', 'UR: Wait', 'Spot4', 'Spot5'])
         UR20.readyToUnload = False
@@ -72,7 +71,7 @@ while True:
                 router.addCustomRoute(bot, ['Charge2', 'Park'])
 
     # Execute Running Queue
-    for bot in fleet.getWaitingRobots():
+    for bot in fleet.getWaitingRobots() + fleet.getNeedChargeRobots():
         if router.canContinue(bot):
             location = router.getNextLocation(bot, bot.location)
             if location == "UR: Load":
@@ -86,10 +85,6 @@ while True:
                     router.removeNextLocation(bot)
             else:
                 bot.postMissionByName(location)
-
-    for bot in fleet.getNeedChargeRobots():
-        if router.canContinue(bot):
-            bot.postMissionByName(router.getNextLocation(bot, bot.location))
 
     sleep(2)
 

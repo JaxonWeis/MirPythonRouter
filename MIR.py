@@ -87,7 +87,11 @@ class Fleet:
         self.allRobots = []
 
     def inductRobot(self, name, ip, auth):
-        self.allRobots.append(Robot(name, ip, auth))
+        try:
+            self.allRobots.append(Robot(name, ip, auth))
+        except:
+            print("Failed to induct Robot: " + name)
+        print("Successfully inducted Robot: " + name)
 
     def update(self):
         for each in self.allRobots:

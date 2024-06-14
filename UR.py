@@ -33,12 +33,12 @@ class URArm:
         return self.receive()
 
     def connect(self):
-        self.socket.connect((self.host, self.port))
-        data = self.receive()
-        if "Connected" in data:
+        try:
+            self.socket.connect((self.host, self.port))
+            data = self.receive()
             self.connected = True
             return True
-        else:
+        except:
             self.connected = False
             return False
 
