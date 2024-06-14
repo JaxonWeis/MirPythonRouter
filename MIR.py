@@ -15,11 +15,13 @@ class Robot:
         self.missions = ""
         self.missionNames = []
         self.getMissionNames()
+        self.distanceToTarget = 0
 
         self.battery = 0
         self.status = ""
+        self.model = ""
 
-        self.location = ""
+        self.location = "None"
         self.getStatus()
 
         self.group = ""
@@ -31,9 +33,13 @@ class Robot:
         return self.name
 
     def printStatus(self):
-        status = self.getStatus()
-        print ("Name: " + self.name + "\n-- Battery: " + str(status['battery_percentage']) + "\n-- Mission State: " + \
-            status['state_text'] + "\n-- Location: " + self.location)
+        print("Name: " + self.name +
+              "\t--Model: " + self.model +
+              "\t--Battery: " + str(self.battery) +
+              "\t--Mission State: " + self.status +
+              "\t--Distance to Target: " + str(self.distanceToTarget) +
+              "\t--Location: " + self.location +
+              "\t--Group: " + self.group)
 
     def getMissions(self):
         self.missions = requests.get(self.host + "missions", headers=self.headers).json()
@@ -69,7 +75,9 @@ class Robot:
     def getStatus(self):
         status = requests.get(self.host + "status", headers=self.headers).json()
         self.status = status['state_text']
-        self.battery = status['battery_percentage']
+        self.battery = round(status['battery_percentage'])
+        self.model = status['robot_model']
+        self.distanceToTarget = round(status['distance_to_next_target'], 1)
         return status
 
 
@@ -89,7 +97,7 @@ class Fleet:
             elif each.status == "Ready" and each.battery <= 20:
                 each.group = "Needs Charge"
             else:
-                each.group = "Active"
+                each.group = "Busy"
 
     def printStatus(self):
         for each in self.allRobots:
@@ -98,7 +106,7 @@ class Fleet:
     def getBusyRobots(self):
         robotList = []
         for each in self.allRobots:
-            if each.group == "Active":
+            if each.group == "Busy":
                 robotList.append(each)
         return robotList
 

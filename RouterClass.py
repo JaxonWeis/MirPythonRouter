@@ -3,7 +3,7 @@ class Router:
 
     def __init__(self):
         self.routeQueue = []
-        self.routeQueue.append(['Spot1', 'Spot2', 'Spot3', 'Spot4', 'Spot5'])
+        self.routeQueue.append(['any', 'Spot1', 'Spot2', 'Spot3', 'Spot4', 'Spot5'])
         self.routeRunning = {}
         self.map = {'Spot1': None, 'Spot2': None, 'Spot3': None, 'Spot4': None, 'Spot5': None, 'Charge1': None, 'Charge2': None}
 
@@ -26,8 +26,17 @@ class Router:
             print(str(each) + ": " + str(self.routeRunning[each]))
         print()
 
-    def addRoute(self, bot):
-        self.routeRunning[bot] = self.routeQueue[0].copy()
+    def addRoute(self, bot, name):
+        for route in self.routeQueue:
+            if route[0] == name or route[0] == 'any':
+                print(route[0])
+                if route[0] == 'any':
+                    self.routeRunning[bot] = route.copy()
+                else:
+                    self.routeRunning[bot] = route.copy()
+                    self.routeQueue.remove(route)
+                self.routeRunning[bot].pop(0)
+                break
 
     def addCustomRoute(self, bot, route):
         self.routeRunning[bot] = route
@@ -49,16 +58,27 @@ class Router:
                 else:
                     return True
             else:
+                self.routeRunning.pop(bot)
                 return False
         else:
             return False
 
     def getNextLocation(self, bot, lastLocation):
-        location = self.routeRunning[bot].pop(0)
+        location = self.routeRunning[bot][0]
+        if "UR" in location:
+            return location
         if location in self.map:
             self.map[location] = bot
         if lastLocation in self.map:
             self.map[lastLocation] = None
-        if len(self.routeRunning[bot]) == 0:
-            self.routeRunning.pop(bot)
+        self.routeRunning[bot].pop(0)
         return location
+
+    def removeNextLocation(self, bot):
+        self.routeRunning[bot].pop(0)
+
+    def addToQueue(self, route):
+        if route[0] == 'any':
+            self.routeQueue.append(route)
+        else:
+            self.routeQueue.insert(0, route)
