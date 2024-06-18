@@ -6,10 +6,10 @@ import UR
 
 # Create MIR Robot Fleet
 fleet = MIR.Fleet()
-# fleet.inductRobot("MiR 600", "192.168.1.5", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
-# fleet.inductRobot("MiR 250_1", "192.168.1.10", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
-# fleet.inductRobot("MiR 250_2", "192.168.1.15", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
-# fleet.inductRobot("MiR 250_3", "192.168.1.20", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
+fleet.inductRobot("MiR 600", "192.168.1.5", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
+fleet.inductRobot("MiR 250_1", "192.168.1.10", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
+fleet.inductRobot("MiR 250_2", "192.168.1.15", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
+fleet.inductRobot("MiR 250_3", "192.168.1.20", "Basic YWRtaW46OGM2OTc2ZTViNTQxMDQxNWJkZTkwOGJkNGRlZTE1ZGZiMTY3YTljODczZmM0YmI4YTgxZjZmMmFiNDQ4YTkxOA==")
 
 # Create UR Arm
 UR20 = UR.URArm("UR20", "192.168.1.25")
@@ -53,10 +53,10 @@ while True:
     router.printMap()
 
     # Match robot to route
-    if fleet.hasRobotsWaiting() and router.hasRoutes():
-        bot = fleet.getWaitingRobots()[0]
+    for bot in fleet.getWaitingRobots():
         if bot not in router.routeRunning:
-            router.addRoute(bot, bot.name)
+            if router.hasRoutes():
+                router.addRoute(bot, bot.name)
 
     # print running Queue
     router.printRunningQueue()
