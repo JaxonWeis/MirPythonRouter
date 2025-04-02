@@ -3,9 +3,8 @@ class Router:
 
     def __init__(self):
         self.routeQueue = []
-        self.routeQueue.append(['any', 'Spot1', 'Spot2', 'Spot3', 'Spot4', 'Spot5'])
         self.routeRunning = {}
-        self.map = {'Spot1': None, 'Spot2': None, 'Spot3': None, 'Spot4': None, 'Spot5': None, 'Charge1': None, 'Charge2': None}
+        self.map = {'DropOff': None, 'Pickup': None}
 
     def printStatus(self):
         print("Route Queue: " + str(len(self.routeQueue)))
